@@ -38,7 +38,7 @@ const amenities = [
 
 export default function Amenities() {
   const sectionRef = useRef(null);
-  const pinRef = useRef(null); // 1. ADD THIS NEW REF
+  const pinRef = useRef(null);
   const trackRef = useRef(null);
 
   useEffect(() => {
@@ -55,23 +55,27 @@ export default function Amenities() {
         },
       });
 
-      // Horizontal scroll
       const track = trackRef.current;
       if (!track) return;
 
       const cards = track.querySelectorAll(".amenity-card");
-      const totalWidth = track.scrollWidth - window.innerWidth;
+
+      // 1. DYNAMIC WIDTH CALCULATION (Fixes resize bugs)
+      const getScrollAmount = () => {
+        return track.scrollWidth - window.innerWidth;
+      };
 
       gsap.to(track, {
-        x: () => -totalWidth,
+        x: () => -getScrollAmount(), // Functional value
         ease: "none",
         scrollTrigger: {
-          trigger: pinRef.current, // 2. PIN THE INNER REF INSTEAD OF SECTIONREF
+          trigger: pinRef.current,
           start: "top top",
-          end: () => `+=${totalWidth}`,
+          end: () => `+=${getScrollAmount()}`, // Functional value
           scrub: 1,
           pin: true,
           anticipatePin: 1,
+          invalidateOnRefresh: true, // 2. FORCES RECALCULATION ON RESIZE
         },
       });
 
@@ -92,12 +96,11 @@ export default function Amenities() {
       });
     }, sectionRef);
 
-    return () => ctx.revert(); // This cleanup will now work perfectly
+    return () => ctx.revert();
   }, []);
 
   return (
     <section ref={sectionRef} id="amenities" style={{ position: "relative" }}>
-      {/* 3. ATTACH pinRef TO THIS INNER WRAPPER */}
       <div
         ref={pinRef}
         style={{
@@ -105,10 +108,9 @@ export default function Amenities() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          overflow: "hidden", // Moved overflow here to protect the pin-spacer
+          overflow: "hidden",
         }}
       >
-        {/* Label */}
         <div
           className="amenities-heading"
           style={{ padding: "0 5vw", marginBottom: "3rem" }}
@@ -129,7 +131,6 @@ export default function Amenities() {
           </p>
         </div>
 
-        {/* Horizontal Scroll Track */}
         <div
           ref={trackRef}
           style={{
@@ -152,7 +153,6 @@ export default function Amenities() {
                 perspective: "1000px",
               }}
             >
-              {/* Image */}
               <div
                 className="img-hover-zoom"
                 style={{ aspectRatio: "16/10", overflow: "hidden" }}
@@ -169,7 +169,6 @@ export default function Amenities() {
                 />
               </div>
 
-              {/* Content */}
               <div style={{ padding: "1.5rem" }}>
                 <div
                   style={{
@@ -196,8 +195,6 @@ export default function Amenities() {
               </div>
             </motion.div>
           ))}
-
-          {/* Spacer at end */}
           <div style={{ minWidth: "5vw", flexShrink: 0 }} />
         </div>
       </div>
